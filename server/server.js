@@ -1,6 +1,7 @@
-var express= require('express');
-var bodyParser = require('body-parser');
-var {ObjectID} = require('mongodb');
+const express= require('express');
+const bodyParser = require('body-parser');
+const {ObjectID} = require('mongodb');
+const _ = require('lodash');
 
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
@@ -31,15 +32,15 @@ app.get('/todos', (req, res) => {
 
 app.get('/todos/:id', (req, res) => {
    var id = req.params.id;
-   if (! ObjectID.isValid(id)) {
+   if (ObjectID.isValid(id)) {
       return res.status(404).send();
    }
    Todo.findById(id).then((todo) => {
       if (! todo) {
-         res.status(404).send();
+         res.status(404).send(id);
       }
       res.status(200).send({todo});
-   }).catch((e) => res.status(404).send());
+   }).catch((e) => res.status(400).send());
 });
 
 app.delete('/todos/:id', (req, res) => {
@@ -52,6 +53,28 @@ app.delete('/todos/:id', (req, res) => {
          res.status(404).send();
       }
       res.status(200).send({todo});
+   }).catch((e) => res.status(400).send());
+});
+
+app.patch('/todos/:id', (req, res) => {
+   var id = req.params.id;
+// Only allow user to update certain properties (eg completedAt is not user-updateable)
+   var body =_.pick(req.body, ['text', 'completed']);
+   if (! ObjectID.isValid(id)) {
+      return res.status(404).send();
+   }
+   if (isBoolean(body.completed) && body.completed) {
+      body.completedAt = new Date().getTime();// timestamp
+   } else {
+      body.completed = false;
+      body.completedAt = null;
+   }
+   // new return updated rec - similar to returnOriginal: false in findOneAndUpdate
+   Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+      if (! todo) {
+         return res.status(404).send();
+      }
+      return res.send({todo});
    }).catch((e) => res.status(400).send());
 });
 
