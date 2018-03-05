@@ -32,7 +32,7 @@ app.get('/todos', (req, res) => {
 
 app.get('/todos/:id', (req, res) => {
    var id = req.params.id;
-   if (ObjectID.isValid(id)) {
+   if (! ObjectID.isValid(id)) {
       return res.status(404).send();
    }
    Todo.findById(id).then((todo) => {
@@ -63,7 +63,7 @@ app.patch('/todos/:id', (req, res) => {
    if (! ObjectID.isValid(id)) {
       return res.status(404).send();
    }
-   if (isBoolean(body.completed) && body.completed) {
+   if (_.isBoolean(body.completed) && body.completed) {
       body.completedAt = new Date().getTime();// timestamp
    } else {
       body.completed = false;
