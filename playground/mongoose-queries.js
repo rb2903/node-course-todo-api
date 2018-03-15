@@ -8,7 +8,7 @@ if (! ObjectID.isValid(id)) {
    console.log('Id not valid');
 }
 
-// Note that we don't need to pass an ObjectId into find - Mongoose converts it for us
+// Note that we don't need to pass an ObjectId into find - Mongoose converts it into an ObjectID for us
 // Todo.find({
 //    _id: id
 // }).then((todos) => {
