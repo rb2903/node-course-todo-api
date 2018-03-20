@@ -63,6 +63,25 @@ UserSchema.methods.generateAuthToken = function () {
    });
 };
 
+// Statics is for methods on the object rather than the instance
+UserSchema.statics.findByToken = function (token) {
+   var User = this;
+   var decoded;
+
+   try {
+      decoded = jwt.verify(token, '123abc');
+   } catch (e) {
+      // return new Promise((resolve, reject) => {
+      //    reject;
+      // });
+      return Promise.reject();
+   }
+   return User.findOne({
+      '_id': decoded._id,
+      'tokens.token': token,
+      'tokens.access': 'auth'
+   })
+}
 var User = mongoose.model('User', UserSchema);
 
 module.exports = {User}
