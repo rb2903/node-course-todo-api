@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
-const jwt = require('jsonwebtoken');
+   const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 const bcrypt = require('bcryptjs');
 
@@ -54,11 +54,12 @@ UserSchema.methods.generateAuthToken = function () {
    var user = this;
    var access = 'auth';
    var token = jwt.sign({_id: user._id.toHexString(), access}, '123abc').toString();
-//   user.tokens = user.tokens.concat([{access}, {token}]);
-   user.tokens = user.tokens.concat([{
-    access: access,
-    token: token
-   }]);
+   user.tokens = user.tokens.concat([{access, token}]);
+   // Longer version of the above
+   // user.tokens = user.tokens.concat([{
+   //  access: access,
+   //  token: token
+   // }]);
 
    return user.save().then(() => {
       return token;
