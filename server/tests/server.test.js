@@ -71,6 +71,7 @@ describe('GET /todos/:id', () => {
          })
          .end(done);
    });
+
    it('should return return 404 if not found', (done) => {
       var id = new ObjectID();
       request(app)
@@ -78,6 +79,7 @@ describe('GET /todos/:id', () => {
          .expect(404)
          .end(done);
    });
+
    it('should return return 404 if invalid id', (done) => {
       request(app)
          .get(`/todos/123`)
@@ -105,6 +107,7 @@ describe('DELETE /todos/:id', () => {
             }).catch((e) => done(e));
          });
    });
+
    it('should return return 404 if not found', (done) => {
       var id = new ObjectID();
       request(app)
@@ -112,6 +115,7 @@ describe('DELETE /todos/:id', () => {
          .expect(404)
          .end(done);
    });
+
    it('should return return 404 if invalid id', (done) => {
       request(app)
          .delete(`/todos/123`)
@@ -146,6 +150,7 @@ describe('PATCH /todos/:id', () => {
             }).catch((e) => done(e));
       });
    });
+
    it('should clear completedAt when todo not completed', (done) => {
       var hexId = todos[1]._id.toHexString();
       var text = 'Updated text for second todo';
@@ -171,6 +176,7 @@ describe('PATCH /todos/:id', () => {
             }).catch((e) => done(e));
          });
    });
+
    it('should return 404 if invalid id', (done) => {
       request(app)
          .patch(`/todos/123`)
@@ -191,6 +197,7 @@ describe('GET /users/me', () => {
        })
        .end(done);
    });
+
    it('should return 401 if not authenticated', (done) => {
      request(app)
        .get('/users/me')
@@ -226,6 +233,7 @@ describe('POST /users', () => {
           }).catch((e) => done(e));
        });
     });
+
     it('should return return errors if request invalid', (done) => {
       var email = 'xxx';
       var password = 'password1';
@@ -235,6 +243,7 @@ describe('POST /users', () => {
       .expect(400)
       .end(done);
    });
+
    it('should not create user if email in use', (done) => {
       var email = 'rob@coolbreeze.co.uk';
       var password = 'password1';
@@ -243,5 +252,52 @@ describe('POST /users', () => {
       .send({email, password})
       .expect(400)
       .end(done);
+   });
+});
+
+describe('POST /users/login', () => {
+   it('should login user and return auth token', (done) => {
+      request(app)
+      .post('/users/login')
+      .send({
+         email: users[1].email,
+         password: users[1].password
+      })
+      .expect((res) => {
+         expect(res.headers['x-auth']).toExist();
+      })
+      .end((err, res) => {
+         if (err) {
+            return done(err);
+         }
+         User.findById(users[1]._id).then((user) => {
+            expect(user.tokens[0]).toInclude({
+               access: 'auth',
+               token: res.headers['x-auth']
+            })
+            done();
+         }).catch((e) => done(e));
+      })
+   });
+
+   it('should reject invalid login', (done) => {
+      request(app)
+      .post('/users/login')
+      .send({
+         email: users[1].email,
+         password: users[1].password + '1'
+      })
+      .expect((res) => {
+         expect(res.headers['x-auth']).toNotExist();
+      })
+      .end((err, res) => {
+         if (err) {
+            return done(err);
+         }
+         User.findById(users[1]._id).then((user) => {
+            expect(user.tokens.length).toBe(0);
+            done();
+         }).catch((e) => done(e));
+      })
    });
 });
