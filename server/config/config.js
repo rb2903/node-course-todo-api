@@ -7,6 +7,9 @@ if (env === 'development' || env === 'test') {
    Object.keys(envConfig).forEach((key) => {
       process.env[key] = envConfig[key];
    })
+// Need this hack as the NODE_ENV variable not available with free Heroku
+} else {
+   process.env.MONGO_URI = 'mongodb://robball:sMtL_0203#@ds155218.mlab.com:55218/robball-todo';
 }
 
 // if (env === 'development') {
